@@ -3,6 +3,7 @@ import { httpAction } from "./_generated/server";
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { api } from "./_generated/api";
+import { stripe } from "./stripe";
 
 const http = httpRouter();
 
@@ -62,13 +63,22 @@ export const clerkWebhook = httpAction(async (ctx, request) => {
     const clerkId = id;
 
     try {
+      // create stripe customer
+      const customer = await stripe.customers.create({
+        email,
+        name,
+        metadata: {
+          clerkId: id,
+        },
+      });
+
       await ctx.runMutation(api.users.createUser, {
         email,
         name,
         clerkId,
+        stripeCustomerId: customer.id,
       });
 
-      // TODO: create stripe customer
       // TODO: Send a welcome email to the user
     } catch (err) {
       console.error("Error -- failed to create user: ", err);
