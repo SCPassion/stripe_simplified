@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import PurchaseButton from "@/components/PurchaseButton";
 
 export default function Home() {
   // const tasks = useQuery(api.tasks.getAllTasks);
@@ -59,7 +60,7 @@ export default function Home() {
                 </Badge>
 
                 <SignedIn>
-                  <Button variant="outline">Enroll</Button>
+                  <PurchaseButton courseId={course._id} />
                 </SignedIn>
 
                 <SignedOut>

@@ -88,6 +88,17 @@ export const getUserAccess = query({
     }
 
     // Check for individual course access
-    // const
+    const purchase = await ctx.db
+      .query("purchases")
+      .withIndex("by_user_id_and_course_id", (q) =>
+        q.eq("userId", args.userId).eq("courseId", args.courseId)
+      )
+      .unique();
+
+    if (purchase) {
+      return { hasAccess: true, accessType: "course" };
+    }
+
+    return { hasAccess: false };
   },
 });
