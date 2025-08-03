@@ -14,6 +14,7 @@ import { useQuery } from "convex/react";
 import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import { Badge } from "@/components/ui/badge";
+import PurchaseButton from "@/components/PurchaseButton";
 
 export default function CoursesPage() {
   const courses = useQuery(api.courses.getCourses);
@@ -27,8 +28,8 @@ export default function CoursesPage() {
             <Link href={`/courses/${course._id}`} className="cursor-pointer">
               <CardHeader>
                 <Image
-                  src={course.imageUrl}
-                  alt={course.title}
+                  src={course.imageUrl ?? ""}
+                  alt={course.title ?? "course"}
                   width={640}
                   height={360}
                   className="rounded-md object-cover"
@@ -46,7 +47,9 @@ export default function CoursesPage() {
                 {course.price}
               </Badge>
 
-              <SignedIn>Purchase</SignedIn>
+              <SignedIn>
+                <PurchaseButton courseId={course._id} />
+              </SignedIn>
 
               <SignedOut>
                 <SignInButton mode="modal">

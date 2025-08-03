@@ -6,6 +6,8 @@ import { useAction, useQuery } from "convex/react";
 import { Button } from "./ui/button";
 import { Loader2Icon } from "lucide-react";
 import { useState } from "react";
+import { ConvexError } from "convex/values";
+import { toast } from "sonner";
 
 export default function PurchaseButton({
   courseId,
@@ -51,6 +53,13 @@ export default function PurchaseButton({
       }
     } catch (error) {
       // todo: handle error
+      if (error instanceof ConvexError) {
+        if (error.message.includes("Rate limit exceeded")) {
+          toast.error(
+            error.message || "Something went wrong. Please try again later."
+          );
+        }
+      }
       console.log(error);
     }
 

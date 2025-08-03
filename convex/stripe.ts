@@ -2,6 +2,7 @@ import Stripe from "stripe";
 import { action } from "./_generated/server";
 import { ConvexError, v } from "convex/values";
 import { api } from "./_generated/api";
+import { ratelimit } from "./ratelimit";
 
 // This is the stripe instance that we will use to create customers, subscriptions, etc.
 // This is a singleton, so we only need to create one instance and use it throughout the application.
@@ -35,7 +36,15 @@ export const createCheckoutSession = action({
       throw new ConvexError("User not found");
     }
 
-    // TODO: Immplement rate limiting (a nice to have feature)
+    // TODO: Immplement rate limiting (a nice to have feature), to avoid someone spamming the checkout page to stripe
+    const rateLimitKey = `checkout-rate-limit:${user._id}`;
+    const { success, reset } = await ratelimit.limit(rateLimitKey);
+
+    if (!success) {
+      throw new ConvexError(
+        `Rate limit exceeded. Try again in ${reset} seconds.`
+      );
+    }
 
     // Get the course
     const course = await ctx.runQuery(api.courses.getCourseById, {
