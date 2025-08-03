@@ -1,15 +1,26 @@
 # Working with Stripe in Convex
 
-## Setup
+## Quick Setup
 
-1. Copy the Stripe secret key to `.env.local` locally and Convex environment variables
-2. Install Stripe package:
+### 1. Environment Variables
+
+Add to `.env.local` and Convex dashboard:
+
+```bash
+STRIPE_SECRET_KEY=sk_test_...
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+CLERK_WEBHOOK_SECRET=whsec_...
+```
+
+### 2. Install Dependencies
 
 ```bash
 npm install stripe
 ```
 
-3. Create a `stripe.ts` inside the convex folder (because Convex needs to access it, only files inside the convex folder run on Convex servers)
+### 3. Create Stripe Client
+
+**File:** `convex/stripe.ts` (must be inside convex folder)
 
 ## Database Schema
 
@@ -66,7 +77,9 @@ subscriptions: defineTable({
 
 ## Implementation Files
 
-### 1. Stripe Client (`convex/stripe.ts`)
+### 1. Stripe Client
+
+**File:** `convex/stripe.ts`
 
 ```typescript
 import Stripe from "stripe";
@@ -149,7 +162,9 @@ export const createCheckoutSession = action({
 });
 ```
 
-### 2. User Management (`convex/users.ts`)
+### 2. User Management
+
+**File:** `convex/users.ts`
 
 ```typescript
 export const createUser = mutation({
@@ -221,7 +236,9 @@ export const getUserAccess = query({
 });
 ```
 
-### 3. Clerk Webhook (`convex/http.ts`)
+### 3. Clerk Webhook
+
+**File:** `convex/http.ts`
 
 ```typescript
 export const clerkWebhook = httpAction(async (ctx, request) => {
@@ -289,6 +306,8 @@ export const clerkWebhook = httpAction(async (ctx, request) => {
 
 ### Purchase Button Component
 
+**File:** `components/PurchaseButton.tsx`
+
 ```typescript
 "use client";
 import { useAction } from "convex/react";
@@ -315,34 +334,59 @@ export default function PurchaseButton({ courseId }: { courseId: Id<"courses"> }
 }
 ```
 
-## Environment Variables
-
-### Local (.env.local)
-
-```bash
-STRIPE_SECRET_KEY=sk_test_...
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-CLERK_WEBHOOK_SECRET=whsec_...
-```
-
-### Convex Dashboard
-
-```bash
-STRIPE_SECRET_KEY=sk_test_...
-CLERK_WEBHOOK_SECRET=whsec_...
-```
-
 ## Payment Flow
 
-1. **User clicks "Enroll Now"** → Calls `createCheckoutSession`
-2. **Rate limiting check** → Prevents spam
-3. **Stripe checkout session created** → Returns checkout URL
-4. **User redirected to Stripe** → Completes payment
-5. **Success redirect** → Back to your app with session_id
-6. **Webhook processing** → Updates database with purchase
+| Step | Action                              | Description                    |
+| ---- | ----------------------------------- | ------------------------------ |
+| 1️⃣   | **User clicks "Enroll Now"**        | Calls `createCheckoutSession`  |
+| 2️⃣   | **Rate limiting check**             | Prevents spam attacks          |
+| 3️⃣   | **Stripe checkout session created** | Returns checkout URL           |
+| 4️⃣   | **User redirected to Stripe**       | Completes payment              |
+| 5️⃣   | **Success redirect**                | Back to app with session_id    |
+| 6️⃣   | **Webhook processing**              | Updates database with purchase |
 
 ## Access Control
 
-- **Subscription access**: Check if user has active subscription
-- **Individual course access**: Check if user purchased specific course
-- **Real-time updates**: Convex provides live data updates
+### Subscription Access
+
+```typescript
+if (user.currentSubscriptionId) {
+  const subscription = await ctx.db.get(user.currentSubscriptionId);
+  if (subscription && subscription.status === "active") {
+    return { hasAccess: true, accessType: "subscription" };
+  }
+}
+```
+
+### Individual Course Access
+
+```typescript
+const purchase = await ctx.db
+  .query("purchases")
+  .withIndex("by_user_id_and_course_id", (q) =>
+    q.eq("userId", args.userId).eq("courseId", args.courseId)
+  )
+  .unique();
+
+if (purchase) {
+  return { hasAccess: true, accessType: "course" };
+}
+```
+
+## Key Features
+
+- 🔐 **Authentication** with Clerk
+- 💳 **Stripe checkout** integration
+- 🛡️ **Rate limiting** protection
+- 📊 **Real-time updates** with Convex
+- 🔄 **Webhook processing** for user creation
+- 🎯 **Access control** for subscriptions and purchases
+
+## Troubleshooting
+
+### Common Issues
+
+- **Stripe secret key missing**: Check environment variables
+- **Webhook verification failed**: Verify CLERK_WEBHOOK_SECRET
+- **Rate limit exceeded**: Adjust rate limiting settings
+- **User not found**: Check Clerk user creation flow
