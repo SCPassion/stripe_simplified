@@ -45,7 +45,10 @@ export default function Navbar() {
 
         <SignedIn>
           <Link href="/billing">
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 text-black"
+            >
               <CreditCardIcon className="size-4" />
               <span className="hidden sm:inline">Billing</span>
             </Button>
@@ -56,7 +59,10 @@ export default function Navbar() {
 
         <SignedIn>
           <SignOutButton>
-            <Button variant="outline" className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              className="flex items-center gap-2 text-black"
+            >
               <LogOutIcon className="size-4" />
               <span className="hidden sm:inline">Logout</span>
             </Button>

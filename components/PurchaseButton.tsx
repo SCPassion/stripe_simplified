@@ -38,7 +38,8 @@ export default function PurchaseButton({
 
   const handlePurchase = async () => {
     if (!user) {
-      alert("Please log in to purchase");
+      toast.error("Please log in to purchase", { id: "login-error" });
+      return;
     }
 
     setIsLoading(true);
